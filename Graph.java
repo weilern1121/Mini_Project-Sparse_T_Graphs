@@ -67,7 +67,7 @@ public class Graph {
         edges.add(e);
     }
 
-    public void printMatrixGraph(int[][] adjListArray){
+    public static void printMatrixGraph(int[][] adjListArray){
         int numOfVertex=adjListArray[0].length;
         System.out.println("The Graph:");
         System.out.print("    ");
@@ -105,6 +105,39 @@ public class Graph {
     }
     public  int getNumOfNeighbors(int a){
         return numOfNeighbors[a];
+    }
+
+    public static void deepCopyGraph(Graph from, Graph to){
+        int max=from.numOfVertex;
+
+        for(int i=0; i<max;i++){
+            to.getNumOfNeighbors()[i]=from.getNumOfNeighbors()[i];
+            for(int j=0; j<max;j++)
+                to.getAdjListArray()[i][j]=from.getAdjListArray()[i][j];
+        }
+
+        //reset the edges in to
+        while(!to.getEdges().isEmpty())
+            to.getEdges().pop();
+        //push edges to to
+        for (Edge tmp:from.getEdges()) {
+            int tmp_from=tmp.getV_from();
+            int tmp_to=tmp.getV_to();
+            to.getEdges().add(new Edge(tmp_from,tmp_to,tmp.getV_weight()));
+            to.getNumOfNeighbors()[tmp_from]++;
+            to.getNumOfNeighbors()[tmp_to]++;
+        }
+        //copy the number of neighbors
+        for(int i=0; i<max; i++)
+            to.getNumOfNeighbors()[i]=to.getNumOfNeighbors()[i]/2;;
+    }
+
+    public int getEdgesSize(){
+        int output=0;
+        for (Edge e:this.getEdges()) {
+            output+=e.getV_weight();
+        }
+        return output;
     }
 
 }
