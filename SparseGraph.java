@@ -1,18 +1,9 @@
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 
 public class SparseGraph {
 
-    private static boolean addRandomEdge(Graph g){
-        Random r = new Random();
-        int from=r.nextInt(g.getNumOfVertex());
-        int to=r.nextInt(g.getNumOfVertex());
-        if( from == to || g.contains(from,to))
-            return false;
+    private static void addRandomEdge(Graph g, int from, int to){
         g.addEdge(from,to);
-        return true;
     }
 
     private static boolean addRandomKEdge(Graph g, int k){
@@ -126,7 +117,7 @@ public class SparseGraph {
         distance[src] = 0; //set the distance from source to source to zero which is the starting point
         for (int counter = 0; counter < num; counter++)
         {
-            min = 999;
+            min = 99999;
             for (int i = 0; i < num; i++)
             {
                 if (min>distance[i] && visited[i]!=1)
@@ -151,49 +142,61 @@ public class SparseGraph {
         return distance;
     }
 
-    private static Graph runAlgorithm (Graph g, int t){
+    //TODO - this is the abstract frunc
+    public static void sortEdges(LinkedList<Edge> edges){
+        //sort the edges by weights
+        Collections.sort(edges, Comparator.comparingInt(Edge::getV_weight));
+    }
+
+    private static LinkedList<Edge> deepCopyEdges(LinkedList<Edge> edges){
+        LinkedList<Edge> output=new LinkedList<>();
+        for (Edge e:edges) {
+            output.add(new Edge(e.getV_from(), e.getV_to(), e.getV_weight()));
+        }
+        return output;
+    }
+
+
+    public static Graph runAlgorithm (Graph g, int t){
         Graph g_output=new Graph(g.getNumOfVertex());
-        g.sortEdges();
-        LinkedList<Edge> edgeCopy=g.getEdges();
+        //g.sortEdges();
+        LinkedList<Edge> edgeCopy=deepCopyEdges(g.getEdges());
+        sortEdges(edgeCopy);
+        //g.printEdges();
         int[] shortestPaths;
         while(!edgeCopy.isEmpty()){
             Edge e=edgeCopy.pop();
             shortestPaths=Dijkstra(g_output,e.getV_from());//calculate shortest paths to all nodes
+            //System.out.println(Arrays.toString(shortestPaths));
+           // System.out.println("t*e.getV_weight()= "+t+"*"+e.getV_weight());
             if(t*e.getV_weight() < shortestPaths[e.getV_to()]) //if(r*weight(e) < weight(P(u,v))
                 g_output.addEdge(e); //add e to g_output
         }
         return g_output;
     }
 
-
-    public static void main(String[] args){
-        Scanner in = new Scanner(System.in);
-        System.out.println("enter number of vertex");
-        int v=in.nextInt();
-        int numOfVertex=v;
-        Graph g1=new Graph(v);
-        System.out.println("Enter type of Graph:" +
-                "\n   1- Random Graph" +
-                "\n   2- K-Regular Random graph");
-        v=in.nextInt();
-        int counterFalse=0,flag=0,k,counterTrue=0;
+    public static int constructGraph(Graph g1,int counterFalse,int flag,int k,int counterTrue,int numOfVertex,int v){
+        Random r = new Random();
         switch(v){
             case 1:            //random graph
-                int maxEdges=(numOfVertex*(numOfVertex-1))/2;
-                for(int i=0; i<maxEdges; i++)
-                {
-                    if(addRandomEdge(g1))
-                        counterTrue++;
+                for(int i=0; i<g1.getNumOfVertex();i++){
+                    for(int j=i; j<g1.getNumOfVertex();j++){
+                        if(i!=j){
+                            if(r.nextInt(2)==1){
+                                addRandomEdge(g1,i,j);
+                                counterTrue++;
+                            }
+                        }
+                    }
                 }
                 break;
+
             case 2:     //K-Regular Random graph
-                System.out.println("Enter the K element");
-                k=in.nextInt();
                 int v_num=g1.getNumOfVertex();
                 if(k>=v_num)
                     throw new IllegalArgumentException("k must be smaller then num_of_vertex!");
-                if(k%2==1 && v_num%2==1)
-                    throw  new IllegalArgumentException("Impossible to make K-regular graph while both  num_of_vertex and k are odds!");
+                if(k%2==1 && v_num%2==1 &&v_num<=20)
+                    throw  new IllegalArgumentException("Impossible to make K-regular graph while both num_of_vertex and k are odds!");
                 while(flag!=3)
                 {
                     while(flag==0){
@@ -209,7 +212,7 @@ public class SparseGraph {
                     //if flag=1 ->succeed ->exit loop
                     if(flag==1)
                         flag=3;
-                    //if flag!=1 ->not-succeed -> reset the graph and retry
+                        //if flag!=1 ->not-succeed -> reset the graph and retry
                     else{
                         counterTrue=0;
                         counterFalse=0;
@@ -219,24 +222,73 @@ public class SparseGraph {
 
                 }
                 break;
-                default: throw new IllegalArgumentException("Illegal input");
+            default: throw new IllegalArgumentException("Illegal input");
+        }
+        return counterTrue;
+    }
+
+    // A utility function to find the vertex with minimum key
+    // value, from the set of vertices not yet included in MST
+    private static int minKey(int[] key, Boolean[] mstSet, int V)
+    {
+        // Initialize min value
+        int min = Integer.MAX_VALUE, min_index=-1;
+
+        for (int v = 0; v < V; v++)
+            if (!mstSet[v] && key[v] < min)
+            {
+                min = key[v];
+                min_index = v;
+            }
+
+        return min_index;
+    }
+    public static int[][] primMST(int graph[][], int V)
+    {
+        // Array to store constructed MST
+        int[] parent = new int[V];
+        // Key values used to pick minimum weight edge in cut
+        int[] key = new int[V];
+        // To represent set of vertices not yet included in MST
+        Boolean[] mstSet = new Boolean[V];
+        // Initialize all keys as INFINITE
+        for (int i=0; i<V; i++){
+            key[i] = 99999;
+            mstSet[i] = false;
+        }
+        // Always include first 1st vertex in MST.
+        key[0] = 0;     // Make key 0 so that this vertex is
+        // picked as first vertex
+        parent[0] = -1; // First node is always root of MST
+        // The MST will have V vertices
+        for (int count=0; count<V-1; count++){
+            // Pick thd minimum key vertex from the set of vertices
+            // not yet included in MST
+            int u = minKey(key, mstSet,V);
+            // Add the picked vertex to the MST Set
+            mstSet[u] = true;
+            // Update key value and parent index of the adjacent
+            // vertices of the picked vertex. Consider only those
+            // vertices which are not yet included in MST
+            for (int v=0; v<V; v++)
+                // graph[u][v] is non zero only for adjacent vertices of m
+                // mstSet[v] is false for vertices not yet included in MST
+                // Update the key only if graph[u][v] is smaller than key[v]
+                if (graph[u][v]!=0 && !mstSet[v] && graph[u][v]<key[v])
+                {
+                    parent[v]=u;
+                    key[v]=graph[u][v];
+                }
+        }
+        int[][] output=new int[graph.length][graph.length];
+        for (int i = 1; i < V; i++){
+            output[parent[i]][i]=graph[i][parent[i]];
+            output[i][parent[i]]=graph[i][parent[i]];
+            //System.out.println(parent[i]+" - "+ i+"\t"+graph[i][parent[i]]);
         }
 
-        System.out.println("---------  The original Graph: --------");
-        g1.printMatrixGraph(g1.getAdjListArray());
-        System.out.println("number of succeeded Edge added:"+counterTrue+"\n");
-        g1.printEdges();
-
-        System.out.println("\nEnter the T spanner number");
-        int t=in.nextInt();
-        Graph result=runAlgorithm(g1,t);
-
-
-
-        System.out.println("\n\n---------  The T-Spanner Graph: --------");
-        result.printMatrixGraph(result.getAdjListArray());
-        result.printEdges();
-        System.out.println("number of succeeded Edge added:"+result.getEdges().size());
-
+        return output;
     }
+
+
 }
