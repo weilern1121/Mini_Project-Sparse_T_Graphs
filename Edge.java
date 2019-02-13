@@ -18,7 +18,7 @@ public class Edge {
         this.V_from=from;
         // create random object
         Random ran = new Random();
-        int randomnum= ran.nextInt(100);
+        int randomnum= ran.nextInt(1000);
         randomnum++;
         this.V_weight=randomnum;
     }
