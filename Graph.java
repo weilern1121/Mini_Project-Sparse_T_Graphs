@@ -14,13 +14,12 @@ public class Graph {
         // number of vertices
         this.adjListArray = new int[V][V];
         this.numOfNeighbors=new int[V];
-
         // Create a new adjacency matrix
         // reset the new value
         for(int i = 0; i < V ; i++){
             this.numOfNeighbors[i]=0;
             for(int j = 0; j < V ; j++)
-            this.adjListArray[i][j]=0;
+                this.adjListArray[i][j]=0;
         }
         edges=new LinkedList();
     }
@@ -29,28 +28,22 @@ public class Graph {
     public int getNumOfVertex() {
         return numOfVertex;
     }
-
     public LinkedList<Edge> getEdges() {
         return edges;
     }
-
     public int[] getAdjListArray(int i) {
         return adjListArray[i];
     }
-
     public int[][] getAdjListArray() {
         return adjListArray;
     }
-
     public int[] getNumOfNeighbors() {
         return numOfNeighbors;
     }
-
     public boolean contains (int from, int to)
     {
         return adjListArray[from][to]==1;
     }
-
     public void addEdge (Integer a, Integer b ){
         Edge e=new Edge(a,b);
         adjListArray[a][b]=1;
@@ -66,7 +59,6 @@ public class Graph {
         numOfNeighbors[e.getV_from()]++;
         edges.add(e);
     }
-
     public static void printMatrixGraph(int[][] adjListArray){
         int numOfVertex=adjListArray[0].length;
         System.out.println("The Graph:");
@@ -83,19 +75,17 @@ public class Graph {
                         System.out.print("V"+i+"   ");
                 }
                 else
-                System.out.print(adjListArray[i][j]+"    ");
+                    System.out.print(adjListArray[i][j]+"    ");
                 if(j>9)
                     System.out.print(" ");
             }
-                System.out.println(" ");
+            System.out.println(" ");
         }
     }
-
     public void sortEdges(){
         //sort the edges by weights
         Collections.sort(this.edges, Comparator.comparingInt(Edge::getV_weight));
     }
-
     public void printEdges(){
         sortEdges();
         System.out.println("The edges:");
@@ -106,20 +96,18 @@ public class Graph {
     public  int getNumOfNeighbors(int a){
         return numOfNeighbors[a];
     }
-
     public static void deepCopyGraph(Graph from, Graph to){
         int max=from.numOfVertex;
-
+        //copy the adjacency matrix
         for(int i=0; i<max;i++){
             to.getNumOfNeighbors()[i]=from.getNumOfNeighbors()[i];
             for(int j=0; j<max;j++)
                 to.getAdjListArray()[i][j]=from.getAdjListArray()[i][j];
         }
-
-        //reset the edges in to
+        //reset the to.edges list
         while(!to.getEdges().isEmpty())
             to.getEdges().pop();
-        //push edges to to
+        //copy the edges list
         for (Edge tmp:from.getEdges()) {
             int tmp_from=tmp.getV_from();
             int tmp_to=tmp.getV_to();
@@ -131,7 +119,6 @@ public class Graph {
         for(int i=0; i<max; i++)
             to.getNumOfNeighbors()[i]=to.getNumOfNeighbors()[i]/2;;
     }
-
     public int getEdgesSize(){
         int output=0;
         for (Edge e:this.getEdges()) {
@@ -139,5 +126,4 @@ public class Graph {
         }
         return output;
     }
-
 }
