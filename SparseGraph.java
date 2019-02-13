@@ -31,69 +31,10 @@ public class SparseGraph {
 
     }
 
-//    private static int minDistance(int[] dist, Boolean[] sptSet, int num)
-//    {
-//        // Init the min value
-//        int min = 9999 , min_index=-1;
-//        for (int i=0; i<num; i++)
-//            if (!sptSet[i] && dist[i] <= min)
-//            {
-//                min = dist[i];
-//                min_index =i;
-//            }
-//        return min_index;
-//    }
-//
-//     private static int[] dijkstra( int src, Graph g) {
-//         int[][] graph=g.getAdjListArray(); //get the adjacency matrix of the graph
-//         int INFINITE=99999;
-//         int num=g.getNumOfVertex();
-//         int[][] dist_matrix= new int[num][num]; //the distance matrix
-//         int[] dist = new int[num]; //dist[i] = shortest distance from src to i
-//         int[] output=new int[num];// The output array- of calculated distances from src
-//
-//         // sptSet[i] is true if vertex i is included in shortest
-//         // path from src to i when finalized
-//         Boolean[] sptSet = new Boolean[num];
-//
-//         // Initialize
-//         for (int i = 0; i < num; i++) {
-//             dist[i] = INFINITE;
-//             sptSet[i] = false;
-//             for(int j=0; j<num; j++)
-//                 dist_matrix[i][j]=INFINITE;
-//         }
-//         //add the weighted edges to the distance matrix
-//        for (Edge e:g.getEdges()) {
-//            dist_matrix[e.getV_to()][e.getV_from()]=e.getV_weight();
-//            dist_matrix[e.getV_from()][e.getV_to()]=e.getV_weight();
-//        }
-//         // Distance of source is 0
-//         dist[src] = 0;
-//
-//         // Find shortest path for all vertices
-//         for (int count = 0; count < num - 1; count++) {
-//             // Pick the minimum distance vertex from the set of vertices
-//             int u = minDistance(dist, sptSet,num);
-//             // Mark the picked vertex as processed
-//             sptSet[u] = true;
-//             // Update dist value of the adjacent vertices of the picked vertex.
-//             for (int v = 0; v < num; v++)
-//                 // Update dist[v] only if is not in sptSet, there is an
-//                 // edge from u to v, and total weight of path from src to
-//                 // v through u is smaller than current value of dist[v]
-//                 if (!sptSet[v] && graph[u][v] != 0 && dist[u] != INFINITE && dist[u] + graph[u][v] < dist[v]){
-//                     dist[v] = dist[u] + graph[u][v]; //distance in #vertex
-//                     output[v]=output[u]+dist_matrix[u][v];//distance in weighted edges
-//                 }
-//         }
-//         return output;
-//     }
-
     private static int[] Dijkstra (Graph g, int src){
         int num=g.getNumOfVertex();
         int[] preD = new int[num];
-        int INF = 999,min, nextNode = 0; // min holds the minimum value, nextNode holds the value for the next node.
+        int INF = 99999,min, nextNode = 0; // min holds the minimum value, nextNode holds the value for the next node.
         int[] distance; // the distance array
         int[][] matrix = new int[num][num]; // the distance matrix
         int[] visited = new int[num]; // the visited array
@@ -142,7 +83,6 @@ public class SparseGraph {
         return distance;
     }
 
-    //TODO - this is the abstract frunc
     public static void sortEdges(LinkedList<Edge> edges){
         //sort the edges by weights
         Collections.sort(edges, Comparator.comparingInt(Edge::getV_weight));
@@ -159,16 +99,12 @@ public class SparseGraph {
 
     public static Graph runAlgorithm (Graph g, int t){
         Graph g_output=new Graph(g.getNumOfVertex());
-        //g.sortEdges();
         LinkedList<Edge> edgeCopy=deepCopyEdges(g.getEdges());
         sortEdges(edgeCopy);
-        //g.printEdges();
         int[] shortestPaths;
         while(!edgeCopy.isEmpty()){
             Edge e=edgeCopy.pop();
             shortestPaths=Dijkstra(g_output,e.getV_from());//calculate shortest paths to all nodes
-            //System.out.println(Arrays.toString(shortestPaths));
-           // System.out.println("t*e.getV_weight()= "+t+"*"+e.getV_weight());
             if(t*e.getV_weight() < shortestPaths[e.getV_to()]) //if(r*weight(e) < weight(P(u,v))
                 g_output.addEdge(e); //add e to g_output
         }
@@ -180,7 +116,7 @@ public class SparseGraph {
         switch(v){
             case 1:            //random graph
                 for(int i=0; i<g1.getNumOfVertex();i++){
-                    for(int j=i; j<g1.getNumOfVertex();j++){
+                    for(int j=i; j<g1.getNumOfVertex();j++){//run on upper-triangle part
                         if(i!=j){
                             if(r.nextInt(2)==1){
                                 addRandomEdge(g1,i,j);
@@ -190,12 +126,11 @@ public class SparseGraph {
                     }
                 }
                 break;
-
             case 2:     //K-Regular Random graph
                 int v_num=g1.getNumOfVertex();
                 if(k>=v_num)
                     throw new IllegalArgumentException("k must be smaller then num_of_vertex!");
-                if(k%2==1 && v_num%2==1 &&v_num<=20)
+                if(k%2==1 && v_num%2==1 &&v_num<=10)
                     throw  new IllegalArgumentException("Impossible to make K-regular graph while both num_of_vertex and k are odds!");
                 while(flag!=3)
                 {
@@ -206,13 +141,14 @@ public class SparseGraph {
                         //if all edges are settled- quit the loop
                         if(counterTrue==(v_num*k)/2)
                             flag=1;
+                        //if number of tries is proportional big- reset the graph flag
                         if(counterFalse==v_num*k*10)
                             flag=2;
                     }
                     //if flag=1 ->succeed ->exit loop
                     if(flag==1)
                         flag=3;
-                        //if flag!=1 ->not-succeed -> reset the graph and retry
+                        //if flag!=1 ->not-succeed -> reset the graph and start all over again
                     else{
                         counterTrue=0;
                         counterFalse=0;
